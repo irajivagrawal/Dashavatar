@@ -41,7 +41,7 @@ import com.qualcomm.robotcore.util.Range;
  * <p>
  * Enables control of the robot via the gamepad
  */
-public class DATeleOpV2 extends OpMode {
+public class DATeleOpV2servoDelta extends OpMode {
 
 	final static double TRIGGER_MIN_RANGE  = 0.20;
 	final static double TRIGGER_MAX_RANGE  = 0.90;
@@ -66,7 +66,7 @@ public class DATeleOpV2 extends OpMode {
     double ElbowPos;
     double HookPos;
 
-    //double servoDelta = 0.1;
+    double servoDelta = 0.1;
 
     DcMotor motorRight;
     DcMotor motorLeft;
@@ -81,10 +81,10 @@ public class DATeleOpV2 extends OpMode {
     double DROP_UP = 0.9;
     double DROP_DOWN = 0.2;
     double SWIVEL_OUT = 0.2;
-    //double SWIVEL_IN = 0.9;
+    double SWIVEL_IN = 0.9;
 
-    double TRIGGER_IN = 0.30;
-    double TRIGGER_OUT = 0.60;
+    double TRIGGER_IN = 0.3;
+    double TRIGGER_OUT = 0.5;
 
     double CLAW_CLOSE = 0.2;
     double CLAW_OPEN = 0.9;
@@ -99,7 +99,7 @@ public class DATeleOpV2 extends OpMode {
 	/**
 	 * Constructor
 	 */
-	public DATeleOpV2() {
+	public DATeleOpV2servoDelta() {
 
 	}
 
@@ -146,16 +146,29 @@ public class DATeleOpV2 extends OpMode {
 		float rightPower = throttle - direction;
 		float leftPower = throttle + direction;
 
+        float fineThrottle = -gamepad1.right_stick_y * 0.5f;
+        float fineDirection = gamepad1.right_stick_x * 0.5f;
+        float fineRightPower = fineThrottle + fineDirection;
+        float fineLeftPower = fineThrottle - fineDirection;
+
 		rightPower = Range.clip(rightPower, -1, 1);
 		leftPower = Range.clip(leftPower, -1, 1);
+
+        fineRightPower = Range.clip(fineRightPower, -1, 1);
+        fineLeftPower = Range.clip(fineLeftPower, -1, 1);
+
+        fineRightPower = (float)scaleInput(fineRightPower);
+        fineLeftPower = (float)scaleInput(fineLeftPower);
 
 		rightPower = (float)scaleInput(rightPower);
 		leftPower =  (float)scaleInput(leftPower);
 
+        motorRight.setPower(fineRightPower);
+        motorLeft.setPower(fineLeftPower);
+
 		motorRight.setPower(rightPower);
 		motorLeft.setPower(leftPower);
 
-        //Gets the input value for the lift motor
         float liftPower = -gamepad2.left_stick_y;
 
         liftPower = Range.clip(liftPower, -1, 1);
@@ -179,38 +192,23 @@ public class DATeleOpV2 extends OpMode {
         Trigger.setPosition(TriggerPos);
 
         if (gamepad1.x) {
-            SwivelPos = SWIVEL_OUT;//Moves the drop inside the bot
+            SwivelPos += servoDelta;//Moves the drop inside the bot
+            try{
+                Thread.sleep(100);
+            }catch(InterruptedException e){
+                e.printStackTrace();
+            }
+            telemetry.addData("x: ", "x button pressed");
         }
 
         if (gamepad1.b) {
-            //move the swivel slowly
-            Swivel.setPosition(0.7);
+            SwivelPos -= servoDelta;//Moves the drop outside the bot
             try{
-                Thread.sleep(1000);
+                Thread.sleep(100);
             }catch(InterruptedException e){
                 e.printStackTrace();
             }
-
-            Swivel.setPosition(0.5);
-            try{
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-
-            Swivel.setPosition(0.4);
-            try{
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-
-            Swivel.setPosition(0.2);
-            try{
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
+            telemetry.addData("b: ", "b button pressed");
         }
 
         SwivelPos = Range.clip(SwivelPos, SWIVEL_MIN_RANGE, SWIVEL_MAX_RANGE);
@@ -218,10 +216,12 @@ public class DATeleOpV2 extends OpMode {
 
         if (gamepad1.y) {
             DropPos = DROP_UP;//Moves the drop upwards
+            telemetry.addData("y: ", "y button pressed");
         }
 
         if (gamepad1.a) {
             DropPos = DROP_DOWN;//Moves the drop downwards
+            telemetry.addData("a: ", "a button pressed");
         }
 
         //clips the range of the servo so that it does not exceed its range values
@@ -233,26 +233,31 @@ public class DATeleOpV2 extends OpMode {
         if (gamepad2.right_bumper)
         {
             ElbowPos = ELBOW_MID;//Puts the elbow in the middle
+            telemetry.addData("RB: ", "right bumper pressed");
         }
 
         if(gamepad2.x)
         {
             ElbowPos = ELBOW_LEFT;//Moves the elbow in()
+            telemetry.addData("x: ", "x button pressed");
         }
 
         if (gamepad2.b)
         {
             ElbowPos = ELBOW_RIGHT;//Moves the elbow out()
+            telemetry.addData("b: ", "b button pressed");
         }
 
         if (gamepad2.y)
         {
             ClawPos = CLAW_OPEN;//Opens the claw of the basket
+            telemetry.addData("y: ", "y button pressed");
         }
 
         if (gamepad2.a)
         {
             ClawPos = CLAW_CLOSE;//Closes the claw of the basket
+            telemetry.addData("a: ", "a button pressed");
         }
 
         ClawPos = Range.clip(ClawPos,CLAW_MIN_RANGE, CLAW_MAX_RANGE);
@@ -261,13 +266,11 @@ public class DATeleOpV2 extends OpMode {
         Claw.setPosition(ClawPos);
         Elbow.setPosition(ElbowPos);
 
-        //Moves the hook out
         if (gamepad2.right_trigger > 0.0)
         {
             HookPos = HOOK_OUT;
         }
 
-        //Moves the hook in
         if (gamepad2.left_trigger > 0.0)
         {
             HookPos = HOOK_IN;
@@ -287,6 +290,8 @@ public class DATeleOpV2 extends OpMode {
         telemetry.addData("Hook", "Hook:  " + String.format("%.2f", HookPos));
         telemetry.addData("left tgt pwr",  "left  pwr: " + String.format("%.2f", leftPower));
         telemetry.addData("right tgt pwr", "right pwr: " + String.format("%.2f", rightPower));
+        telemetry.addData("left tgt pwr",  "left  pwr: " + String.format("%.2f", fineLeftPower));
+        telemetry.addData("right tgt pwr", "right pwr: " + String.format("%.2f", fineRightPower));
         telemetry.addData("lift tgt pwr", "lift pwr: " + String.format("%.2f", liftPower));
 
 	}

@@ -41,7 +41,7 @@ import com.qualcomm.robotcore.util.Range;
  * <p>
  * Enables control of the robot via the gamepad
  */
-public class DATeleOpV2 extends OpMode {
+public class DATeleOpV3Blue extends OpMode {
 
 	final static double TRIGGER_MIN_RANGE  = 0.20;
 	final static double TRIGGER_MAX_RANGE  = 0.90;
@@ -51,22 +51,13 @@ public class DATeleOpV2 extends OpMode {
 	final static double DROP_MIN_RANGE  = 0.20;
 	final static double DROP_MAX_RANGE  = 0.90;
 
-    final static double CLAW_MIN_RANGE  = 0.20;
-    final static double CLAW_MAX_RANGE  = 0.90;
-    final static double ELBOW_MIN_RANGE  = 0.20;
-    final static double ELBOW_MAX_RANGE  = 0.90;
-
     final static double HOOK_MIN_RANGE  = 0.20;
     final static double HOOK_MAX_RANGE  = 0.90;
 
-    double SwivelPos;
-    double DropPos;
-    double TriggerPos;
-    double ClawPos;
-    double ElbowPos;
-    double HookPos;
-
-    //double servoDelta = 0.1;
+    private double SwivelPos;
+    private double DropPos;
+    private double TriggerPos;
+    private double HookPos;
 
     DcMotor motorRight;
     DcMotor motorLeft;
@@ -74,32 +65,15 @@ public class DATeleOpV2 extends OpMode {
     Servo Trigger;
     Servo Swivel;
     Servo Drop;
-    Servo Claw;
-    Servo Elbow;
     Servo Hook;
 
     double DROP_UP = 0.9;
     double DROP_DOWN = 0.2;
-    double SWIVEL_OUT = 0.2;
-    //double SWIVEL_IN = 0.9;
-
-    double TRIGGER_IN = 0.30;
-    double TRIGGER_OUT = 0.60;
-
-    double CLAW_CLOSE = 0.2;
-    double CLAW_OPEN = 0.9;
-
-    double ELBOW_RIGHT = 0.2;
-    double ELBOW_LEFT = 0.9;
-    double ELBOW_MID = 0.42;
-
-    double HOOK_IN = 0.2;
-    double HOOK_OUT = 0.9;
 
 	/**
 	 * Constructor
 	 */
-	public DATeleOpV2() {
+	public DATeleOpV3Blue() {
 
 	}
 
@@ -123,14 +97,29 @@ public class DATeleOpV2 extends OpMode {
         Trigger = hardwareMap.servo.get("Trigger");
         Swivel = hardwareMap.servo.get("Swivel");
         Drop = hardwareMap.servo.get("Drop");
-        Claw = hardwareMap.servo.get("Claw");
-        Elbow = hardwareMap.servo.get("Elbow");
         Hook = hardwareMap.servo.get("Hook");
+
+        SwivelPos = 0.5;
 
         //TriggerPos = Trigger.getPosition();
 	}
 
-	/*
+    private void sleep() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            //e.printStackTrace();
+        }
+    }
+
+    private void SetServoPosition(Servo thingToMove, double angle, double minRange, double maxRange)
+    {
+        angle = Range.clip(angle, minRange, maxRange);
+        thingToMove.setPosition(angle);
+        sleep();
+    }
+
+    /*
 	 * This method will be called repeatedly in a loop
 	 *
 	 * @see com.qualcomm.robotcore.eventloop.opmode.OpMode#run()
@@ -164,63 +153,55 @@ public class DATeleOpV2 extends OpMode {
 
         motorLift.setPower(liftPower);
 
-        // GAMEPAD 1 CONTROLS
-        if (gamepad1.left_bumper) {
-            TriggerPos = TRIGGER_OUT;//Moves the triggers
+        // GAMEPAD 2 CONTROLS
+        if (gamepad2.left_bumper) {
+            TriggerPos += 0.1;//Moves the triggers
+        }
+        //Moves the hook in
+        if (gamepad2.left_trigger > 0.0)
+        {
+            TriggerPos -= 0.1;
+
         }
 
-        if (gamepad1.right_bumper) {
-            TriggerPos = TRIGGER_IN;//Moves the triggers
-        }
+
+        Trigger.setPosition(TriggerPos);
+        sleep();
 
         //clips the range of the servo so that it does not exceed its range values
         TriggerPos = Range.clip(TriggerPos, TRIGGER_MIN_RANGE, TRIGGER_MAX_RANGE);
-
         Trigger.setPosition(TriggerPos);
+        sleep();
 
-        if (gamepad1.x) {
-            SwivelPos = SWIVEL_OUT;//Moves the drop inside the bot
+        if (gamepad2.x) {
+            SwivelPos += 0.1;//Moves the drop inside the bot
         }
 
-        if (gamepad1.b) {
+        if (gamepad2.b) {
             //move the swivel slowly
-            Swivel.setPosition(0.7);
-            try{
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-
-            Swivel.setPosition(0.5);
-            try{
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-
-            Swivel.setPosition(0.4);
-            try{
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
-
-            Swivel.setPosition(0.2);
-            try{
-                Thread.sleep(1000);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
+            SwivelPos -= 0.1;//Moves the drop inside the bot
         }
 
         SwivelPos = Range.clip(SwivelPos, SWIVEL_MIN_RANGE, SWIVEL_MAX_RANGE);
         Swivel.setPosition(SwivelPos);
+        sleep();
 
-        if (gamepad1.y) {
+        if (gamepad2.right_bumper){
+            HookPos += 0.1;
+        }
+
+        if (gamepad2.right_trigger > 0.0){
+            HookPos -= 0.1;
+        }
+
+        SetServoPosition(Hook, HookPos, HOOK_MIN_RANGE, HOOK_MAX_RANGE);
+        sleep();
+
+        if (gamepad2.y) {
             DropPos = DROP_UP;//Moves the drop upwards
         }
 
-        if (gamepad1.a) {
+        if (gamepad2.a) {
             DropPos = DROP_DOWN;//Moves the drop downwards
         }
 
@@ -228,12 +209,15 @@ public class DATeleOpV2 extends OpMode {
         DropPos = Range.clip(DropPos, DROP_MIN_RANGE, DROP_MAX_RANGE);
 
         Drop.setPosition(DropPos);
+        sleep();
 
+        /*
         // GAMEPAD2 CONTROLS
         if (gamepad2.right_bumper)
         {
             ElbowPos = ELBOW_MID;//Puts the elbow in the middle
         }
+
 
         if(gamepad2.x)
         {
@@ -260,30 +244,15 @@ public class DATeleOpV2 extends OpMode {
 
         Claw.setPosition(ClawPos);
         Elbow.setPosition(ElbowPos);
-
-        //Moves the hook out
-        if (gamepad2.right_trigger > 0.0)
-        {
-            HookPos = HOOK_OUT;
-        }
-
-        //Moves the hook in
-        if (gamepad2.left_trigger > 0.0)
-        {
-            HookPos = HOOK_IN;
-        }
-
-        HookPos = Range.clip(HookPos,HOOK_MIN_RANGE, HOOK_MAX_RANGE);
-
-        Hook.setPosition(HookPos);
+*/
 
         //Send telemetry data back to driver station.
         telemetry.addData("Text", "*** Robot Data***");
-        telemetry.addData("Trigger", "Trigger:  " + String.format("%.2f", TriggerPos));
-        telemetry.addData("Swivel", "Swivel:  " + String.format("%.2f", SwivelPos));
-        telemetry.addData("Drop", "Drop:  " + String.format("%.2f", DropPos));
-        telemetry.addData("Claw", "Claw:  " + String.format("%.2f", ClawPos));
-        telemetry.addData("Elbow", "Elbow:  " + String.format("%.2f", ElbowPos));
+        telemetry.addData("Trigger", TriggerPos);
+        telemetry.addData("Swivel", SwivelPos);
+        telemetry.addData("Drop", DropPos);
+        //telemetry.addData("Claw", ClawPos);
+        //telemetry.addData("Elbow", ElbowPos);
         telemetry.addData("Hook", "Hook:  " + String.format("%.2f", HookPos));
         telemetry.addData("left tgt pwr",  "left  pwr: " + String.format("%.2f", leftPower));
         telemetry.addData("right tgt pwr", "right pwr: " + String.format("%.2f", rightPower));

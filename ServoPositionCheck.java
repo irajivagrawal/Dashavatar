@@ -1,12 +1,14 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-//import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+
+//import com.qualcomm.robotcore.hardware.DcMotor;
+
 /**
  * Created by Administrator on 2/27/2016.
  */
-public class ServoTest extends OpMode {
+public class ServoPositionCheck extends OpMode {
 
     //Servo servoTriggerLeft;
     Servo servoTrigger;
@@ -15,15 +17,13 @@ public class ServoTest extends OpMode {
     //private double currentPosRight;
 
     @Override
-    public void init()
-    {
+    public void init() {
         //servoTriggerRight = hardwareMap.servo.get("servo1");
         servoTrigger = hardwareMap.servo.get("servo1");
 
     }
 
-    public void start()
-    {
+    public void start() {
 
         currentPos = servoTrigger.getPosition();
         //currentPosRight = servoTriggerRight.getPosition();
@@ -34,22 +34,43 @@ public class ServoTest extends OpMode {
         //telemetry.addData("servo", "servoRight: " + String.format("%.2f", currentPosRight));
 
 
-        servoTrigger.setPosition(0.5);
+        servoTrigger.setPosition(0.3);
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        servoTrigger.setPosition(0.75);
 
         currentPos = servoTrigger.getPosition();
+        telemetry.addData("servo", "servo: " + String.format("%.2f", currentPos));
+
+        servoTrigger.setPosition(0.5);
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        currentPos = servoTrigger.getPosition();
+        telemetry.addData("servo", "servo: " + String.format("%.2f", currentPos));
+
+        servoTrigger.setPosition(0.75);
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        currentPos = servoTrigger.getPosition();
+        telemetry.addData("servo", "servo: " + String.format("%.2f", currentPos));
     }
+
+
 
 
     @Override
     public void loop() {
-        telemetry.addData("Text", "*** Robot Data***");
-        telemetry.addData("servo", "servo: " + String.format("%.2f", currentPos));
+        //telemetry.addData("Text", "*** Robot Data***");
+        //telemetry.addData("servo", "servo: " + String.format("%.2f", currentPos));
         //telemetry.addData("servo", "servoRight: " + String.format("%.2f", currentPosRight));
 
     }

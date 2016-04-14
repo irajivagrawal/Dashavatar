@@ -1,26 +1,24 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 /**
  * Created by Administrator on 3/13/2016.
  */
-public class DashavtarAutoOp extends LinearOpMode {
+public class DashavtarAutoOpRed extends LinearOpMode {
     DcMotor motorRight;
     DcMotor motorLeft;
     Servo Swivel;
     Servo Drop;
 
-    double SwivelPos = 0.9;
-    double DropPos = 0.9;
+    //double SwivelPos = 0.9;
+    //double DropPos = 0.9;
 
-    double DROP_UP = 0.9;
+    double DROP_UP = 0.5;
     double DROP_DOWN = 0.2;
-    double SWIVEL_OUT = 0.2;
+    //double SWIVEL_OUT = 0.2;
     double SWIVEL_IN = 0.9;
 
     public void runOpMode() throws InterruptedException
@@ -37,6 +35,12 @@ public class DashavtarAutoOp extends LinearOpMode {
         Drop.setPosition(DROP_UP);
 
         waitForStart();
+
+        try{
+            Thread.sleep(12000);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
 
         MoveChassis(110, 1.0f);//Move the chassis approx. 60 inches
 
@@ -56,7 +60,6 @@ public class DashavtarAutoOp extends LinearOpMode {
 
         MoveChassis(35, 1.0f);
 
-        //Moves the Swivel outwards slowly(with jerks)
         Swivel.setPosition(0.7);
         try{
             Thread.sleep(1000);
@@ -85,7 +88,7 @@ public class DashavtarAutoOp extends LinearOpMode {
             e.printStackTrace();
         }//Limit Position, could cause hangs
 
-        Drop.setPosition(DROP_DOWN);//Drops the autodrop
+        Drop.setPosition(DROP_DOWN);
 
         waitOneFullHardwareCycle();
 
@@ -114,6 +117,20 @@ public class DashavtarAutoOp extends LinearOpMode {
             sleep(noOfmiliSeconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+
+        stopAllMotors();
+    }
+
+    private void MoveRight ()
+    {
+        motorRight.setPower(-1.0);
+        motorLeft.setPower(1.0);
+
+        try{
+            Thread.sleep(1000);
+        }catch(InterruptedException e){
+             e.printStackTrace();
         }
 
         stopAllMotors();
